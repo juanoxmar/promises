@@ -10,11 +10,23 @@
 
 var fs = require('fs');
 var Promise = require('bluebird');
+const request = require('request');
 
-
+Promise.promisifyAll(fs);
+Promise.promisifyAll(request);
 
 var fetchProfileAndWriteToFile = function(readFilePath, writeFilePath) {
-  // TODO
+  return fs.readFileAsync(readFilePath)
+    .then((data) => {
+      const user = data.toString().split('\n')[0];
+      return request.getAsync(`https://api.github.com/users/${user}`);
+    })
+    .then((profile) => {
+      return fs.writeFileAsync(writeFilePath, profile.toJSON().body);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 // Export these functions so we can test them
